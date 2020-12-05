@@ -1,0 +1,3 @@
+LOCK TABLES `blog` WRITE;
+INSERT INTO `blog` VALUES (1, 'abc');
+UNLOCK TABLES;

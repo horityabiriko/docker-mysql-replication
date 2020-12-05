@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  master:
+    container_name: blog-db-master
+    image: mysql:5.7
+    ports:
+      - "63306:3306"
+    volumes:
+      - blog-data:/var/lib/mysql # masterはvolumeをmount(永続化させる)
+      - ./docker/db/master.cnf:/etc/mysql/conf.d/master.cnf
+    networks:
+      blog_network:
+        ipv4_address: 192.168.0.11
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=db_blog
+      - MYSQL_USER=db_blog
+      - MYSQL_PASSWORD=Zaq1Zaq1
+      - TZ=Asia/Tokyo
+  slave:
+    container_name: blog-db-slave
+    image: mysql:5.7
+    ports:
+      - '63307:3306'
+    depends_on:
+      - master
+    tmpfs: /var/lib/mysql
+    volumes:
+      - ./docker/db/slave.cnf:/etc/mysql/conf.d/slave.cnf
+      - ./docker/db/init/start-slave.sh:/docker-entrypoint-initdb.d/start-slave.sh
+    networks:
+      blog_network:
+        ipv4_address: 192.168.0.12
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=db_blog
+      - MYSQL_USER=db_blog
+      - MYSQL_PASSWORD=Zaq1Zaq1
+      - TZ=Asia/Tokyo
+volumes:
+  blog-data:
+    driver: 'local'
+
+networks:
+  blog_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
